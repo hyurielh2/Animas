@@ -32,6 +32,24 @@ type Programa = {
   tipo: string
 }
 
+// Calcula la fecha de cada día de la semana actual
+function getWeekDates() {
+  const today = new Date()
+  const currentDay = today.getDay() || 7 // Domingo=7
+  const monday = new Date(today)
+  monday.setDate(today.getDate() - (currentDay - 1))
+  return days.map((day, idx) => {
+    const date = new Date(monday)
+    date.setDate(monday.getDate() + idx)
+    return {
+      day,
+      date: date.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })
+    }
+  })
+}
+
+const weekDates = getWeekDates()
+
 export default function Schedule() {
   const [activeDay, setActiveDay] = useState('Lunes')
   const [programas, setProgramas] = useState<Programa[]>([])
@@ -78,24 +96,27 @@ export default function Schedule() {
       </h2>
       {/* Tabs para seleccionar día */}
       <nav className="w-full flex justify-center mb-6" aria-label="Selector de día">
-        <div className="flex gap-2 overflow-x-auto sm:overflow-x-visible transition-all duration-300 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent">
-          {days.map(day => (
+        <div className="flex gap-2 overflow-x-auto sm:overflow-x-visible scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent">
+          {weekDates.map(({ day, date }) => (
             <button
               key={day}
               aria-label={`Ver programación de ${day}`}
               tabIndex={0}
               onClick={() => setActiveDay(day)}
-              className={`min-w-[80px] px-3 py-1.5 rounded-full font-semibold text-xs sm:text-sm whitespace-nowrap transition-all duration-200 outline-none
+              className={`
+                flex flex-col items-center justify-center min-w-[90px] max-w-[120px] px-3 py-1
+                rounded-lg font-medium transition-all duration-200
                 ${activeDay === day
-                  ? 'bg-gradient-to-r from-blue-400 to-orange-400 text-white shadow-lg scale-105'
+                  ? 'bg-gradient-to-r from-blue-500 to-orange-400 text-white shadow-md scale-105'
                   : 'bg-gray-800 text-gray-200 hover:bg-orange-400 hover:text-white'}
                 ${currentDay === day ? 'ring-2 ring-orange-400' : ''}
                 focus-visible:ring-4 focus-visible:ring-blue-400
               `}
-              style={{ textAlign: 'center', fontSize: 'clamp(0.9rem, 2vw, 1.1rem)' }}
+              style={{ textAlign: 'center' }}
             >
-              <span className="mr-1" aria-hidden>📅</span>
-              {day}
+              <span className="text-base mb-0.5" aria-hidden>📅</span>
+              <span className="truncate text-[clamp(0.85rem,2vw,0.98rem)]">{day}</span>
+              <span className="text-[0.72em] text-gray-300 font-normal">{date}</span>
             </button>
           ))}
         </div>
