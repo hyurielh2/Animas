@@ -32,34 +32,36 @@ type Programa = {
   tipo: string
 }
 
-// Calcula la fecha de cada día de la semana actual
-function getWeekDates() {
+// Genera días rotados desde hoy
+function getRotatedWeekDates() {
   const today = new Date()
-  const currentDay = today.getDay() || 7 // Domingo=7
+  const currentDayIndex = today.getDay() === 0 ? 6 : today.getDay() - 1 // Lunes=0, Domingo=6
   const monday = new Date(today)
-  monday.setDate(today.getDate() - (currentDay - 1))
-  return days.map((day, idx) => {
-    const date = new Date(monday)
-    date.setDate(monday.getDate() + idx)
+  monday.setDate(today.getDate() - (currentDayIndex))
+
+  // Genera 7 días seguidos desde hoy (no solo la semana actual)
+  return Array.from({ length: 7 }).map((_, idx) => {
+    const date = new Date(today)
+    date.setDate(today.getDate() + idx)
+    const dayIndex = (currentDayIndex + idx) % 7
     return {
-      day,
+      day: days[dayIndex],
       date: date.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })
     }
   })
 }
 
-const weekDates = getWeekDates()
+const weekDates = getRotatedWeekDates()
 
 export default function Schedule() {
-  const [activeDay, setActiveDay] = useState('Lunes')
+  const [activeDay, setActiveDay] = useState(weekDates[0].day)
   const [programas, setProgramas] = useState<Programa[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [fade, setFade] = useState(false)
 
   // Día actual para resaltar
-  const todayIndex = new Date().getDay()
-  const currentDay = todayIndex === 0 ? 'Domingo' : days[todayIndex - 1]
+  const currentDay = weekDates[0].day
 
   useEffect(() => {
     async function fetchProgramas() {

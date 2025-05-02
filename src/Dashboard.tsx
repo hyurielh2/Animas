@@ -2,11 +2,11 @@ import { useState, useEffect } from 'react'
 import { supabase } from './supabaseClient'
 
 const tipos = ['Retro', 'Estreno', 'Maraton', 'Reprise', 'Normal']
-const dias = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo']
 
 type Programa = {
   id: string
   dia: string
+  fecha: string
   hora_inicio: string
   hora_fin: string
   programa: string
@@ -21,6 +21,24 @@ const tipoColors: Record<string, string> = {
   normal: 'bg-gray-700 text-white font-bold',
 }
 
+// Genera un array de 7 días consecutivos a partir de hoy con formato combinado
+function getFutureCombinedDates(count: number) {
+  const today = new Date()
+  return Array.from({ length: count }).map((_, idx) => {
+    const d = new Date(today)
+    d.setDate(today.getDate() + idx)
+    // Opciones: día de la semana, día y mes
+    const options: Intl.DateTimeFormatOptions = { weekday: 'long', day: '2-digit', month: 'short' }
+    const label = d.toLocaleDateString('es-ES', options)  // Ejemplo: "martes, 02 may"
+    return {
+      value: d.toISOString().split('T')[0],  // "YYYY-MM-DD"
+      label
+    }
+  })
+}
+
+const futureCombinedDates = getFutureCombinedDates(7)
+
 export default function Dashboard() {
   const [user, setUser] = useState<unknown | null>(null)
   const [loading, setLoading] = useState(true)
@@ -28,6 +46,7 @@ export default function Dashboard() {
   const [form, setForm] = useState<Programa>({
     id: '',
     dia: '',
+    fecha: '',
     hora_inicio: '',
     hora_fin: '',
     programa: '',
@@ -47,17 +66,24 @@ export default function Dashboard() {
   }, [])
 
   useEffect(() => {
-    if (user) fetchProgramas()
+    if (user) fetchProgramas().then(data => setProgramas(data || []))
   }, [user])
 
   async function fetchProgramas() {
+    // Fecha de hoy en formato "YYYY-MM-DD"
+    const today = new Date().toISOString().split('T')[0]
+
     const { data, error } = await supabase
       .from('programacion')
       .select('*')
-      .order('dia')
-      .order('hora_inicio')
-    if (error) setError('Error al cargar la programación')
-    setProgramas(data || [])
+      .gte('fecha', today)
+      .order('fecha', { ascending: true })
+      .order('hora_inicio', { ascending: true })
+
+    if (error) {
+      console.error('Error al cargar la programación:', error)
+    }
+    return data
   }
 
   async function handleLogin(e: React.FormEvent<HTMLFormElement>) {
@@ -79,6 +105,7 @@ export default function Dashboard() {
     if (editMode) {
       const { error } = await supabase.from('programacion').update({
         dia: form.dia,
+        fecha: form.fecha,
         hora_inicio: form.hora_inicio,
         hora_fin: form.hora_fin,
         programa: form.programa,
@@ -88,6 +115,7 @@ export default function Dashboard() {
     } else {
       const { error } = await supabase.from('programacion').insert([{
         dia: form.dia,
+        fecha: form.fecha,
         hora_inicio: form.hora_inicio,
         hora_fin: form.hora_fin,
         programa: form.programa,
@@ -95,14 +123,14 @@ export default function Dashboard() {
       }])
       if (error) setError('Error al agregar')
     }
-    setForm({ id: '', dia: '', hora_inicio: '', hora_fin: '', programa: '', tipo: 'normal' })
+    setForm({ id: '', dia: '', fecha: '', hora_inicio: '', hora_fin: '', programa: '', tipo: 'normal' })
     setEditMode(false)
-    fetchProgramas()
+    fetchProgramas().then(data => setProgramas(data || []))
   }
 
   async function handleDelete(id: string) {
     await supabase.from('programacion').delete().eq('id', id)
-    fetchProgramas()
+    fetchProgramas().then(data => setProgramas(data || []))
   }
 
   function handleEdit(prog: Programa) {
@@ -111,7 +139,7 @@ export default function Dashboard() {
   }
 
   function handleCancelEdit() {
-    setForm({ id: '', dia: '', hora_inicio: '', hora_fin: '', programa: '', tipo: 'normal' })
+    setForm({ id: '', dia: '', fecha: '', hora_inicio: '', hora_fin: '', programa: '', tipo: 'normal' })
     setEditMode(false)
   }
 
@@ -141,14 +169,17 @@ export default function Dashboard() {
           <button onClick={handleLogout} className="bg-gradient-to-r from-orange-400 to-blue-400 text-white px-4 py-2 rounded-full font-bold shadow hover:scale-105 transition">Cerrar sesión</button>
         </div>
         <form onSubmit={handleAddOrEdit} className="flex flex-wrap gap-2 mb-8 items-end">
+          {/* Selección de fecha (día+fecha combinados) */}
           <select
             required
             className="border border-gray-700 bg-gray-900 text-white rounded px-2 py-1"
-            value={form.dia}
-            onChange={e => setForm(f => ({ ...f, dia: e.target.value }))}
+            value={form.fecha || ''}
+            onChange={e => setForm(f => ({ ...f, fecha: e.target.value }))}
           >
-            <option value="">Día</option>
-            {dias.map(d => <option key={d} value={d}>{d}</option>)}
+            <option value="">Fecha</option>
+            {futureCombinedDates.map(({ value, label }) => (
+              <option key={value} value={value}>{label}</option>
+            ))}
           </select>
           {/* Contenedor para hora de inicio y fin */}
           <div className="flex gap-2 w-full sm:w-auto">
@@ -158,7 +189,7 @@ export default function Dashboard() {
                 required
                 type="time"
                 className="border border-gray-700 bg-gray-900 text-white rounded px-2 py-1"
-                style={{ accentColor: '#ff8c00' }} 
+                style={{ accentColor: '#ff8c00' }}
                 value={form.hora_inicio}
                 onChange={e => setForm(f => ({ ...f, hora_inicio: e.target.value }))}
                 placeholder="Hora inicio"
@@ -213,6 +244,7 @@ export default function Dashboard() {
               <thead>
                 <tr className="bg-gradient-to-r from-gray-800 to-gray-900 text-orange-400">
                   <th className="p-3 font-bold">Día</th>
+                  <th className="p-3 font-bold">Fecha</th>
                   <th className="p-3 font-bold">Inicio</th>
                   <th className="p-3 font-bold">Fin</th>
                   <th className="p-3 font-bold">Programa</th>
@@ -224,6 +256,7 @@ export default function Dashboard() {
                 {programas.map(prog => (
                   <tr key={prog.id} className="border-b border-gray-800 hover:bg-gray-800 transition">
                     <td className="p-3 text-white">{prog.dia}</td>
+                    <td className="p-3 text-white">{new Date(prog.fecha).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}</td>
                     <td className="p-3 text-blue-300 font-mono">{prog.hora_inicio}</td>
                     <td className="p-3 text-blue-300 font-mono">{prog.hora_fin}</td>
                     <td className="p-3 text-white font-semibold">{prog.programa}</td>
