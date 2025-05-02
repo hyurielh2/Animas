@@ -1,10 +1,11 @@
 import './App.css'
 import Schedule from './Schedule'
 import logo from './assets/logo.jpeg'
+import { Link } from 'react-router-dom'
 
 function App() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black flex flex-col items-center">
+    <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black flex flex-col items-center py-8">
       <header className="w-full flex flex-col items-center py-8 mb-4">
         <img
           src={logo}
@@ -20,6 +21,12 @@ function App() {
           Canal de anime 24/7 en Nicaragua
         </p>
       </header>
+      <h1 className="text-3xl text-white font-bold mb-6">Panel Frontal</h1>
+      <Link to="/admin">
+        <button className="bg-gradient-to-r from-blue-500 to-orange-400 text-white px-4 py-2 rounded-full font-bold shadow hover:scale-105 transition mb-4">
+          Ir a Admin
+        </button>
+      </Link>
       <Schedule />
       <footer className="mt-auto mb-4 text-gray-500 text-xs md:text-sm text-center w-full">
         © 2025 Animas &middot; Todos los derechos reservados
