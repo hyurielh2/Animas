@@ -1,7 +1,6 @@
 import './App.css'
 import Schedule from './Schedule'
 import logo from './assets/logo.jpeg'
-import { Link } from 'react-router-dom'
 
 function App() {
   return (
@@ -15,22 +14,9 @@ function App() {
         <h1 className="text-4xl md:text-5xl font-extrabold text-white mt-4 tracking-widest drop-shadow-lg">
           <span className="text-blue-400">ANIM</span>
           <span className="text-orange-400">A</span>
-          <span className="text-white">S</span>
         </h1>
-        <p className="text-base md:text-lg text-gray-300 mt-2 text-center px-2">
-          Canal de anime 24/7 en Nicaragua
-        </p>
       </header>
-      <h1 className="text-3xl text-white font-bold mb-6">Panel Frontal</h1>
-      <Link to="/admin">
-        <button className="bg-gradient-to-r from-blue-500 to-orange-400 text-white px-4 py-2 rounded-full font-bold shadow hover:scale-105 transition mb-4">
-          Ir a Admin
-        </button>
-      </Link>
       <Schedule />
-      <footer className="mt-auto mb-4 text-gray-500 text-xs md:text-sm text-center w-full">
-        © 2025 Animas &middot; Todos los derechos reservados
-      </footer>
     </div>
   )
 }
