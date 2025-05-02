@@ -6,12 +6,12 @@ const days = [
 ]
 
 const typeStyles: Record<string, string> = {
-  estreno: 'bg-orange-500 text-white',
-  reprise: 'bg-blue-400 text-white',
+  estreno: 'bg-orange-500 text-white font-bold',
+  reprise: 'bg-blue-400 text-white font-bold',
   retro: 'bg-white text-black font-bold border-2 border-orange-400',
   maraton: 'bg-gradient-to-r from-orange-400 to-blue-400 text-white font-bold',
   pelicula: 'bg-gradient-to-r from-blue-400 to-orange-400 text-white font-bold',
-  normal: 'bg-gray-300 text-black font-bold',
+  normal: 'bg-gray-700 text-white font-bold', // actualizado el estilo para "NORMAL"
 }
 
 type Programa = {
@@ -28,6 +28,12 @@ export default function Schedule() {
   const [programas, setProgramas] = useState<Programa[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+
+  // Obtén el día actual para resaltar en la lista de días
+  const todayIndex = new Date().getDay() // 0 es domingo en JS
+  // Convertirlo a nuestro array (y considerar que nuestro array comienza en Lunes):
+  // Si hoy es domingo (0), lo consideramos como "Domingo"
+  const currentDay = todayIndex === 0 ? 'Domingo' : days[todayIndex - 1]
 
   useEffect(() => {
     async function fetchProgramas() {
@@ -55,7 +61,7 @@ export default function Schedule() {
       </h2>
       {/* Tabs para seleccionar día */}
       <div className="w-full flex justify-center mb-6">
-        <div className="flex gap-2 overflow-x-auto sm:overflow-x-visible scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent">
+        <div className="flex gap-2 overflow-x-auto sm:overflow-x-visible transition-all duration-300 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent">
           {days.map(day => (
             <button
               key={day}
@@ -63,7 +69,8 @@ export default function Schedule() {
               className={`min-w-[80px] px-3 py-1.5 rounded-full font-semibold text-xs sm:text-sm whitespace-nowrap transition-all duration-200
                 ${activeDay === day
                   ? 'bg-gradient-to-r from-blue-400 to-orange-400 text-white shadow-lg scale-105'
-                  : 'bg-gray-800 text-gray-200 hover:bg-orange-400 hover:text-white'}
+                  : 'bg-gray-800 text-gray-200 hover:bg-orange-400 hover:text-white'} 
+                ${currentDay === day ? 'ring-2 ring-orange-400' : ''}
               `}
               style={{ textAlign: 'center' }}
             >
@@ -102,7 +109,7 @@ export default function Schedule() {
                     {show.programa}
                   </div>
                   <div className="col-span-3 flex items-center justify-start">
-                    <span className={`px-2 py-1 rounded-full text-[10px] sm:text-xs font-bold shadow ${typeStyles[show.tipo] || 'bg-gray-300 text-black'}`}>
+                    <span className={`px-2 py-1 rounded-full text-[10px] sm:text-xs font-bold shadow ${typeStyles[show.tipo.toLowerCase()] || 'bg-gray-700 text-white'}`}>
                       {show.tipo.toUpperCase()}
                     </span>
                   </div>

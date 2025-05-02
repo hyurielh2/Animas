@@ -18,7 +18,7 @@ const tipoColors: Record<string, string> = {
   reprise: 'bg-blue-400 text-white',
   retro: 'bg-white text-black font-bold border-2 border-orange-400',
   maraton: 'bg-gradient-to-r from-orange-400 to-blue-400 text-white font-bold',
-  normal: 'bg-gray-300 text-black font-bold',
+  normal: 'bg-gray-700 text-white font-bold',
 }
 
 export default function Dashboard() {
